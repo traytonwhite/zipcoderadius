@@ -10,11 +10,12 @@ get '/' => sub {
 };
 
 app->start;
+
 __DATA__
 
 @@ index.html.ep
 % layout 'default';
-% title 'Welcome';
+% title 'Zip Code Radius Calculator';
 Welcome to the Mojolicious real-time web framework!
 
 @@ layouts/default.html.ep
