@@ -20,26 +20,25 @@
 
 use strict;
 use warnings;
-use Math::Trig qw( great_circle_distance deg2rad );
+use Math::Trig qw( great_circle_distance );
 use Data::Dumper;
 
 sub zipdistance {
-    my  ( $ziplatlonhash, $zipcode, $ziplist, $radius ) = @_;
+    my  ( $ziplatlonhash, $radius ) = @_;
     my %returnhash;
-
-    for ( @$ziplist ) {
-        if ( $zipcode gt $_ ) {
-            next;
-        } elsif ( $zipcode eq $_ ) {
-            $returnhash{$zipcode}{$_} = 0;
-        } else {
-            $returnhash{$zipcode}{$_} = great_circle_distance(
-                ${$ziplatlonhash}{$zipcode}{'lon'},
-                90 - ${$ziplatlonhash}{$zipcode}{'lat'},
-                ${$ziplatlonhash}{$_}{'lon'},
-                90 - ${$ziplatlonhash}{$_}{'lat'},
-                $radius
-            )
+    for my $zipcode ( keys %{$ziplatlonhash} ) {
+        for ( keys %{$ziplatlonhash} ) {
+            if ( $zipcode eq $_ ) {
+                $returnhash{$zipcode}{$_} = 0;
+            } else {
+                $returnhash{$zipcode}{$_} = &great_circle_distance (
+                    ${$ziplatlonhash}{$zipcode}{'lon'},
+                    90 - ${$ziplatlonhash}{$zipcode}{'lat'},
+                    ${$ziplatlonhash}{$_}{'lon'},
+                    90 - ${$ziplatlonhash}{$_}{'lat'},
+                    $radius
+                )
+            }
         }
     }
     return \%returnhash;
@@ -55,12 +54,17 @@ my %zipdb = (
             'lat' => 40.7,
             'lon' => -85.2,
         },
-    );
-my @listofzips = ( 94123, 46714 );
+        '48126' => {
+            'lat' => 44.8,
+            'lon' => -80.3,
+        },
+        '00501' => {
+            'lat' => 30.2,
+            'lon' => -70.3,
+    },
+);
 
-my $final = zipdistance(\%zipdb, '46714', \@listofzips, 6378);
+my $final = &zipdistance( \%zipdb, 6378 );
 
-print "${$final}{'46714'}{'94123'} \n";
-
-
+print Dumper( \$final );
 
