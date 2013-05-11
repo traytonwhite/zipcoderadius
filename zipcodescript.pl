@@ -28,9 +28,13 @@ my $file = $ARGV[0] or die "Please list a zip code csv file when calling this co
 open(my $data, '<', $file) or die "Failed to open '$file' $!\n";
 
 chomp(my $header = <$data>);
+# Assume the zip code file has a header row
 my @fieldnames = split(',', $header);
+# Find field with zip codes
 my @zipfield = grep { $fieldnames[$_] =~ /ZipCode/ } 0..$#fieldnames;
+# Find field with longitude
 my @lonfield = grep { $fieldnames[$_] =~ /Longitude/ } 0..$#fieldnames;
+# Find field with latitude
 my @latfield = grep { $fieldnames[$_] =~ /Latitude/ } 0..$#fieldnames;
 
 my %zipdb;
@@ -46,7 +50,7 @@ while ( my $line = <$data>) {
     } else {
     $zipdb{$splitline[$zipfield[0]]}{'lon'} = $splitline[$lonfield[0]];
     $zipdb{$splitline[$zipfield[0]]}{'lat'} = $splitline[$latfield[0]];
-        }
+    }
 }
 close($data);
 
