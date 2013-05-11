@@ -21,6 +21,8 @@
 use strict;
 use warnings;
 use Math::Trig qw( great_circle_distance );
+use Text::CSV;
+
 use Data::Dumper;
 
 sub zipdistance {
@@ -31,7 +33,7 @@ sub zipdistance {
             if ( $zipcode eq $_ ) {
                 $returnhash{$zipcode}{$_} = 0;
             } else {
-                $returnhash{$zipcode}{$_} = &great_circle_distance (
+                $returnhash{$zipcode}{$_} = &great_circle_distance(
                     ${$ziplatlonhash}{$zipcode}{'lon'},
                     90 - ${$ziplatlonhash}{$zipcode}{'lat'},
                     ${$ziplatlonhash}{$_}{'lon'},
