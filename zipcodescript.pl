@@ -23,19 +23,22 @@ use warnings;
 use Math::Trig qw( great_circle_distance deg2rad );
 use Data::Dumper;
 
-my $file = $ARGV[0] or die "Please list a zip code csv file when calling this command.\n";
+my $file = $ARGV[0] or
+    die "Please list a zip code csv file when calling this command.\n";
 
 open(my $data, '<', $file) or die "Failed to open '$file' $!\n";
 
+# This section reads in the first line of the CSV file, and looks for the
+# zipcode, latitude, and longitude fields.
 chomp(my $header = <$data>);
 # Assume the zip code file has a header row
 my @fieldnames = split(',', $header);
 # Find field with zip codes
-my @zipfield = grep { $fieldnames[$_] =~ /ZipCode/ } 0..$#fieldnames;
+my @zipfield = grep { $fieldnames[$_] =~ /zip/ } 0..$#fieldnames;
 # Find field with longitude
-my @lonfield = grep { $fieldnames[$_] =~ /Longitude/ } 0..$#fieldnames;
+my @lonfield = grep { $fieldnames[$_] =~ /longitude/ } 0..$#fieldnames;
 # Find field with latitude
-my @latfield = grep { $fieldnames[$_] =~ /Latitude/ } 0..$#fieldnames;
+my @latfield = grep { $fieldnames[$_] =~ /latitude/ } 0..$#fieldnames;
 
 my %zipdb;
 
@@ -44,7 +47,7 @@ while ( my $line = <$data>) {
     $line =~ s/"//g;
     my @splitline = split(',', $line);
     if ($splitline[$lonfield[0]] == 0) {
-        next;
+        next; # if the longitude is 0, then it's not real for a US address
     } elsif (exists $zipdb{$splitline[$zipfield[0]]}) {
         next;
     } else {
@@ -54,10 +57,10 @@ while ( my $line = <$data>) {
 }
 close($data);
 
-&zipdistance( 6378.14 );
+&zipdistance( 6378.14, 500 );
 
 sub zipdistance {
-    my  ( $radius ) = $_[0];
+    my  ( $radius, $mindist ) = @_;
     for my $zipcode ( keys %zipdb ) {
         my %zipdist;
         for ( keys %zipdb ) {
@@ -73,7 +76,7 @@ sub zipdistance {
                     deg2rad(90 - $zipdb{$_}{'lat'}),
                     $radius
                 ));
-                $zipdist{$_} = $distance if ($distance < 500);
+                $zipdist{$_} = $distance if ( $distance < $mindist );
                 }
             }
         for ( keys %zipdist ) {
