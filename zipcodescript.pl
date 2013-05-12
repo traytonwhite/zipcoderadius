@@ -32,7 +32,7 @@ open(my $data, '<', $file) or die "Failed to open '$file' $!\n";
 # zipcode, latitude, and longitude fields.
 chomp(my $header = <$data>);
 # Assume the zip code file has a header row
-my @fieldnames = split(',', $header);
+my @fieldnames = split('","', $header);
 # Find field with zip codes
 my @zipfield = grep { $fieldnames[$_] =~ /zip/ } 0..$#fieldnames;
 # Find field with longitude
@@ -44,10 +44,12 @@ my %zipdb;
 
 while ( my $line = <$data>) {
     chomp($line);
-    $line =~ s/"//g;
-    my @splitline = split(',', $line);
+    my @splitline = split('","', $line);
+    for (0..$#splitline) {
+        $splitline[$_] =~ s/"//g; # remove all double quotes
+    }
     if ($splitline[$lonfield[0]] == 0) {
-        next; # if the longitude is 0, then it's not real for a US address
+        next; # if the longitude is 0, then it's not real for the US
     } elsif (exists $zipdb{$splitline[$zipfield[0]]}) {
         next;
     } else {
