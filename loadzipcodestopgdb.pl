@@ -23,14 +23,14 @@ use warnings;
 use Text::CSV;
 use DBI;
 
-my $dbh = DBI->connect("dbi:Pg:dbname=zipcodes",'trayton','', {AutoCommit => 1})
+my $dbh = DBI->connect('dbi:Pg:dbname=zipcodes','trayton','', {AutoCommit => 1})
     or die "Could not connect.";
 
-$dbh->do("create table ziplatlon (
+$dbh->do('create table ziplatlon (
         zip char(5),
         lon real,
         lat real
-    )"
+    )'
 );
 
 my $sth = $dbh->prepare("insert into ziplatlon values (?, ?, ?)");

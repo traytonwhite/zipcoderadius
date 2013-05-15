@@ -1,8 +1,23 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite;
+use DBI;
 
 # Documentation browser under "/perldoc"
 plugin 'PODRenderer';
+
+my $dbh = DBI->connect('dbi:Pg:zipcodes','trayton','', {AutoCommit => 1})
+    or die "Could not connect to database.";
+
+helper db => sub { $dbh };
+
+helper selectzips => sub {
+    my $self = shift;
+    my $sth = eval { $self->db->prepare('select * from ziplatlon') }
+        || return undef;
+    $sth->execute;
+    return $sth->fetchall_arrayref;
+};
+
 
 get '/' => sub {
   my $self = shift;

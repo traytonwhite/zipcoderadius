@@ -21,9 +21,6 @@
 use strict;
 use warnings;
 use Math::Trig qw( great_circle_distance );
-use Text::CSV;
-
-use Data::Dumper;
 
 sub zipdistance {
     my  ( $ziplatlonhash, $radius ) = @_;
