@@ -47,7 +47,7 @@ while ( my $row = $csv->getline( $fh ) ) {
     my $zip = $row->[$zipfield[0]];
     my $lon = $row->[$lonfield[0]];
     my $lat = $row->[$latfield[0]];
-     next if ( $lon eq "" );
+    next if ( $lon eq "" );
     $sth->execute(
         $zip,
         $lon,
@@ -56,5 +56,4 @@ while ( my $row = $csv->getline( $fh ) ) {
 }
 
 close $fh;
-
 my $rc = $dbh->disconnect;
