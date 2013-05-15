@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 #===============================================================================
 #
-#         FILE: readzipcodecsv.pl
+#         FILE: loadzipcodestopgdb.pl
 #
-#        USAGE: ./readzipcodecsv.pl
+#        USAGE: ./loadzipcodestopgdb.pl
 #
 #  DESCRIPTION: Read the zip code CSV file and load into PostgreSQL DB
 #
