@@ -36,7 +36,7 @@ $dbh->do('create table ziplatlon (
 my $sth = $dbh->prepare("insert into ziplatlon values (?, ?, ?)");
 
 my $csv = Text::CSV->new( { binary => 1 } );
-open my $fh, "<", $ARGV[0] or die "ARGV[0]: $!\n";
+open my $fh, "<", $ARGV[0] or die "$ARGV[0]: $!\n";
 
 my $header = $csv->getline( $fh );
 my @zipfield = grep { $header->[$_] =~ /Zipcode/ } 0..$#{$header};
