@@ -1,27 +1,45 @@
 #!/usr/bin/env perl
+
 use Mojolicious::Lite;
 use DBI;
 
 # Documentation browser under "/perldoc"
 plugin 'PODRenderer';
 
-my $dbh = DBI->connect('dbi:Pg:zipcodes','trayton','', {AutoCommit => 1})
+my $dbh = DBI->connect('dbi:Pg:dbname=zipcodes','trayton','', {AutoCommit => 1})
     or die "Could not connect to database.";
 
+# add helper methods for interacting with the db
 helper db => sub { $dbh };
 
 helper selectzips => sub {
     my $self = shift;
-    my $sth = eval { $self->db->prepare('select * from ziplatlon') }
+    my ($zipcode, $radius, $units) = @_;
+    if ($units eq 'miles') {
+        $radius *= 1.60934;
+    }
+    my $sth = eval { $self->db->prepare('select zip, lat, lon,
+            ?::real as radius,
+            \'km\' as units
+            from ziplatlon where zip = ?') }
         || return undef;
-    $sth->execute;
+    $sth->execute($radius, $zipcode);
     return $sth->fetchall_arrayref;
 };
 
+helper distancecalc => sub {
+    my $self = shift;
+    my ($zipcode, )
+};
 
-get '/' => sub {
-  my $self = shift;
-  $self->render('index');
+any '/' => sub {
+    my $self    = shift;
+    my $zipcode = $self->param('zipcode');
+    my $radius  = $self->param('radius');
+    my $units   = $self->param('units');
+    my $rows    = $self->selectzips($zipcode, $radius, $units);
+    $self->stash( rows => $rows );
+    $self->render('index');
 };
 
 app->start;
@@ -31,7 +49,34 @@ __DATA__
 @@ index.html.ep
 % layout 'default';
 % title 'Zip Code Radius Calculator';
-Welcome to the Mojolicious real-time web framework!
+<form action="<%=url_for('')->to_abs%>" method="post">
+    Zip Code:   <input type="text" name="zipcode">
+    <br>
+    Radius:     <input type="text" name="radius">
+    <br>
+    Units:      <input type="radio" name="units" value="km"> km
+                <input type="radio" name="units" value="miles"> miles
+    <br>
+                <input type="submit" value="Calculate">
+</form>
+<br>
+Zip Code:
+<br>
+<table border="1">
+    <tr>
+        <th>Zip Code</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Radius</th>
+        <th>Units</th>
+    </tr>
+    % for my $row (@$rows) {
+    <tr>
+        % for my $text (@$row) {
+            <td><%= $text %></td>
+        % }
+    % }
+</table>
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
