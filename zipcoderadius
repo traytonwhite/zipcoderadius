@@ -47,13 +47,41 @@ app->start;
 __DATA__
 
 @@ index.html.ep
-% layout 'default';
-% title 'Zip Code Radius Calculator';
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Zip Code Radius</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 90%; width: 95% }
+      body { height: 90%; width: 95%; margin-left: auto; margin-right: auto; padding: 0 }
+      #map-canvas { height: 90%; width: 95% }
+    </style>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJJp6S9OpfZxra51nqDF2pP5piTgFM1tc&sensor=false">
+    </script>
+    <script type="text/javascript">
+      function initialize() {
+        var mapOptions = {
+          center: new google.maps.LatLng(39.30, -98.61),
+          zoom: 4,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById("map-canvas"),
+          mapOptions);
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+  <table>
+    <div id="map-canvas"/>
+    </table>
+<center>    <table>
 <form action="<%=url_for('')->to_abs%>" method="post">
     Zip Code:   <input type="text" name="zipcode">
-    <br>
     Radius:     <input type="text" name="radius">
-    <br>
     Units:      <input type="radio" name="units" value="km"> km
                 <input type="radio" name="units" value="miles"> miles
     <br>
@@ -77,10 +105,8 @@ Zip Code:
         % }
     % }
 </table>
-
-@@ layouts/default.html.ep
-<!DOCTYPE html>
-<html>
-  <head><title><%= title %></title></head>
-  <body><%= content %></body>
+</table>
+</center>
+</body>
 </html>
+
