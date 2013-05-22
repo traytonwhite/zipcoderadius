@@ -64,7 +64,7 @@ __DATA__
     <script type="text/javascript">
       function initialize() {
         var mapOptions = {
-          center: new google.maps.LatLng(39.30, -98.61),
+          center: new google.maps.LatLng(<%= $rows->[0][1]%>, <%= $rows->[0][2] %>),
           zoom: 4,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
@@ -78,6 +78,7 @@ __DATA__
   <table>
     <div id="map-canvas"/>
     </table>
+<br>
 <center>    <table>
 <form action="<%=url_for('')->to_abs%>" method="post">
     Zip Code:   <input type="text" name="zipcode">
@@ -88,7 +89,6 @@ __DATA__
                 <input type="submit" value="Calculate">
 </form>
 <br>
-Zip Code:
 <br>
 <table border="1">
     <tr>
