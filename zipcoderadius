@@ -29,7 +29,7 @@ helper selectzips => sub {
 
 helper distancecalc => sub {
     my $self = shift;
-    my ($zipcode, )
+    my ($zipcode) = @_;
 };
 
 any '/' => sub {
