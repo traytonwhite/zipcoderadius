@@ -6,6 +6,8 @@ use DBI;
 # Documentation browser under "/perldoc"
 plugin 'PODRenderer';
 
+app->secret('this is the secret pass phrase');
+
 my $dbh = DBI->connect('dbi:Pg:dbname=zipcodes','trayton','', {AutoCommit => 1})
     or die "Could not connect to database.";
 
