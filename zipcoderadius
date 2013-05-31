@@ -11,24 +11,25 @@ app->secret('this is the secret pass phrase');
 my $dbh = DBI->connect('dbi:Pg:dbname=zipcodes','trayton','', {AutoCommit => 1})
     or die "Could not connect to database.";
 
-# add helper methods for interacting with the db
+# add helper method for interacting with the db
 helper db => sub { $dbh };
 
+# create helper method for selecting zip codes from db
 helper selectzips => sub {
     my $self = shift;
     my ($zipcode, $radius, $units) = @_;
-    if ($units eq 'miles') {
-        $radius *= 1.60934;
-    }
-    my $sth = eval { $self->db->prepare('select zip, lat, lon,
+#    my @zipsinradius = 
+#    my $listofzips = join( ',', map { '?' } @zipsinradius );
+    my $sth = eval { $self->db->prepare("select zip, lat, lon,
             ?::real as radius,
-            \'km\' as units
-            from ziplatlon where zip = ?') }
+            ?::varchar as units
+            from ziplatlon where zip = ?") }
         || return undef;
-    $sth->execute($radius, $zipcode);
+    $sth->execute($radius, $units, $zipcode);
     return $sth->fetchall_arrayref;
 };
 
+# helper method to calculate distances
 helper distancecalc => sub {
     my $self = shift;
     my ($zipcode) = @_;
@@ -58,7 +59,7 @@ __DATA__
     <style type="text/css">
       html { height: 90%; width: 95% }
       body { height: 90%; width: 95%; margin-left: auto; margin-right: auto; padding: 0 }
-      #map-canvas { height: 90%; width: 95% }
+      #map-canvas { height: 90%; width: 100% }
     </style>
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJJp6S9OpfZxra51nqDF2pP5piTgFM1tc&sensor=false">
