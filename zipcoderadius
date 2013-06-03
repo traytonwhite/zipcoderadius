@@ -2,24 +2,30 @@
 
 use Mojolicious::Lite;
 use DBI;
+use Math::Trig qw( great_circle_distance deg2rad );
 
 # Documentation browser under "/perldoc"
 plugin 'PODRenderer';
 
-app->secret('this is the secret pass phrase');
+app->secret('passphrase does not matter');
 
 my $dbh = DBI->connect('dbi:Pg:dbname=zipcodes','trayton','', {AutoCommit => 1})
     or die "Could not connect to database.";
 
-# add helper method for interacting with the db
+# quick reference to the db handle
 helper db => sub { $dbh };
 
 # create helper method for selecting zip codes from db
 helper selectzips => sub {
+    my %ziphash;
     my $self = shift;
     my ($zipcode, $radius, $units) = @_;
-#    my @zipsinradius = 
-#    my $listofzips = join( ',', map { '?' } @zipsinradius );
+    my $allzipq = eval { $self->db->prepare("select zip, lat, lon
+            from ziplatlon") } || return undef;
+    $allzipq->execute();
+    my $allzips = $allzipq->fetchall_hashref('zip');
+    my $
+#   my $listofzips = join( ',', map { '?' } @zipsinradius );
     my $sth = eval { $self->db->prepare("select zip, lat, lon,
             ?::real as radius,
             ?::varchar as units
@@ -32,7 +38,28 @@ helper selectzips => sub {
 # helper method to calculate distances
 helper distancecalc => sub {
     my $self = shift;
-    my ($zipcode) = @_;
+    my ( $zipcode, $earthradius, $ziplatlonhash ) = @_;
+    my %returnhash;
+    for my $zip ( keys %$ziplatlonhash ) {
+        if ( great_circle_distance(
+            deg2rad(${$ziplatlonhash}{$zipcode}{'lon'}),
+            deg2rad(90 - ${$ziplatlonhash}{$zipcode}{'lat'}),
+            deg2rad(${$ziplatlonhash}{$zip}{'lon'}),
+            deg2rad(90 - ${$ziplatlonhash}{$zip}{'lat'}),
+            $earthradius
+        ) > $radius ) {
+            next;
+        } else {
+        $returnhash{$zip} = great_circle_distance(
+            deg2rad(${$ziplatlonhash}{$zipcode}{'lon'}),
+            deg2rad(90 - ${$ziplatlonhash}{$zipcode}{'lat'}),
+            deg2rad(${$ziplatlonhash}{$zip}{'lon'}),
+            deg2rad(90 - ${$ziplatlonhash}{$zip}{'lat'}),
+            $earthradius
+            );
+        }
+    }
+    return \%returnhash;
 };
 
 any '/' => sub {
@@ -102,10 +129,11 @@ __DATA__
         <th>Units</th>
     </tr>
     % for my $row (@$rows) {
-    <tr>
+        <tr>
         % for my $text (@$row) {
             <td><%= $text %></td>
         % }
+        </tr>
     % }
 </table>
 </table>
