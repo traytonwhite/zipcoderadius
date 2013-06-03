@@ -136,7 +136,7 @@ __DATA__
         <th>Zip Code</th>
         <th>Distance</th>
     </tr>
-    % for my $zip ( sort { ${$zipcodehash}{$a}{'distance'} <=> ${$zipcodehash}{$b}{'distance'}} keys %{$zipcodehash} ) {
+    % for my $zip ( sort { ${$zipcodehash}{$a}{'distance'} <=> ${$zipcodehash}{$b}{'distance'} || $a <=> $b } keys %{$zipcodehash} ) {
         <tr>
         <td><%= $zip %></td>
         <td><%= ${$zipcodehash}{$zip}{'distance'} %></td>
