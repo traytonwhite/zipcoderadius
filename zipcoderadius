@@ -18,45 +18,43 @@ helper db => sub { $dbh };
 # create helper method for selecting zip codes from db
 helper selectzips => sub {
     my %ziphash;
+    my $earthradius;
     my $self = shift;
-    my ($zipcode, $radius, $units) = @_;
+    my ( $zipcode, $radius, $units ) = @_;
+    return 1 unless ( $zipcode ne '' );
+    if ( $units eq 'miles' ) {
+        $earthradius = 3963;
+    } else {
+        $earthradius = 6378;
+    }
     my $allzipq = eval { $self->db->prepare("select zip, lat, lon
             from ziplatlon") } || return undef;
     $allzipq->execute();
     my $allzips = $allzipq->fetchall_hashref('zip');
-    my $
-#   my $listofzips = join( ',', map { '?' } @zipsinradius );
-    my $sth = eval { $self->db->prepare("select zip, lat, lon,
-            ?::real as radius,
-            ?::varchar as units
-            from ziplatlon where zip = ?") }
-        || return undef;
-    $sth->execute($radius, $units, $zipcode);
-    return $sth->fetchall_arrayref;
+    return $self->distancezips( $zipcode, $radius, $earthradius, $allzips );
 };
 
-# helper method to calculate distances
-helper distancecalc => sub {
+# helper method to calculate distances and build hash of those zips within
+# radius
+helper distancezips => sub {
     my $self = shift;
-    my ( $zipcode, $earthradius, $ziplatlonhash ) = @_;
+    my ( $zipcode, $radius, $earthradius, $ziplatlonhash ) = @_;
     my %returnhash;
     for my $zip ( keys %$ziplatlonhash ) {
-        if ( great_circle_distance(
+        # calculate the distance between the 2 zip codes
+        my $distance = great_circle_distance(
             deg2rad(${$ziplatlonhash}{$zipcode}{'lon'}),
             deg2rad(90 - ${$ziplatlonhash}{$zipcode}{'lat'}),
             deg2rad(${$ziplatlonhash}{$zip}{'lon'}),
             deg2rad(90 - ${$ziplatlonhash}{$zip}{'lat'}),
             $earthradius
-        ) > $radius ) {
-            next;
-        } else {
-        $returnhash{$zip} = great_circle_distance(
-            deg2rad(${$ziplatlonhash}{$zipcode}{'lon'}),
-            deg2rad(90 - ${$ziplatlonhash}{$zipcode}{'lat'}),
-            deg2rad(${$ziplatlonhash}{$zip}{'lon'}),
-            deg2rad(90 - ${$ziplatlonhash}{$zip}{'lat'}),
-            $earthradius
-            );
+        );
+        $distance = sprintf("%.2f", $distance);
+        # add the zip code to the hash only if it's within the radius
+        if ( $distance <= $radius ) {
+            $returnhash{$zip}{'distance'} = $distance;
+            $returnhash{$zip}{'lon'} = ${$ziplatlonhash}{$zip}{'lon'};
+            $returnhash{$zip}{'lat'} = ${$ziplatlonhash}{$zip}{'lat'};
         }
     }
     return \%returnhash;
@@ -67,8 +65,21 @@ any '/' => sub {
     my $zipcode = $self->param('zipcode');
     my $radius  = $self->param('radius');
     my $units   = $self->param('units');
-    my $rows    = $self->selectzips($zipcode, $radius, $units);
-    $self->stash( rows => $rows );
+    my $zips;
+    if ( $zipcode ) {
+        $zips = $self->selectzips($zipcode, $radius, $units);
+    } else {
+        $zipcode = 'starter';
+        $zips = {
+            'starter' => {
+                'lat' => -94.23,
+                'lon' => 38.55,
+                'distance' => 0
+            },
+        };
+    }
+    $self->stash( zipcodehash => $zips );
+    $self->stash( zipcode => $zipcode );
     $self->render('index');
 };
 
@@ -94,7 +105,7 @@ __DATA__
     <script type="text/javascript">
       function initialize() {
         var mapOptions = {
-          center: new google.maps.LatLng(<%= $rows->[0][1]%>, <%= $rows->[0][2] %>),
+          center: new google.maps.LatLng(<%= ${$zipcodehash}{$zipcode}{'lat'}%>, <%= ${$zipcodehash}{$zipcode}{'lon'} %>),
           zoom: 4,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
@@ -123,16 +134,12 @@ __DATA__
 <table border="1">
     <tr>
         <th>Zip Code</th>
-        <th>Latitude</th>
-        <th>Longitude</th>
-        <th>Radius</th>
-        <th>Units</th>
+        <th>Distance</th>
     </tr>
-    % for my $row (@$rows) {
+    % for my $zip ( keys %{$zipcodehash} ) {
         <tr>
-        % for my $text (@$row) {
-            <td><%= $text %></td>
-        % }
+        <td><%= $zip %></td>
+        <td><%= ${$zipcodehash}{$zip}{'distance'} %></td>
         </tr>
     % }
 </table>
