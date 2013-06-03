@@ -21,7 +21,6 @@ helper selectzips => sub {
     my $earthradius;
     my $self = shift;
     my ( $zipcode, $radius, $units ) = @_;
-    return 1 unless ( $zipcode ne '' );
     if ( $units eq 'miles' ) {
         $earthradius = 3963;
     } else {
