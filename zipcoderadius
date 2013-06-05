@@ -39,21 +39,21 @@ helper distancezips => sub {
     my $self = shift;
     my ( $zipcode, $radius, $earthradius, $ziplatlonhash ) = @_;
     my %returnhash;
-    for my $zip ( keys %$ziplatlonhash ) {
+    for my $zip ( keys %{$ziplatlonhash} ) {
         # calculate the distance between the 2 zip codes
         my $distance = great_circle_distance(
-            deg2rad(${$ziplatlonhash}{$zipcode}{'lon'}),
-            deg2rad(90 - ${$ziplatlonhash}{$zipcode}{'lat'}),
-            deg2rad(${$ziplatlonhash}{$zip}{'lon'}),
-            deg2rad(90 - ${$ziplatlonhash}{$zip}{'lat'}),
+            deg2rad($ziplatlonhash->{$zipcode}{'lon'}),
+            deg2rad(90 - $ziplatlonhash->{$zipcode}{'lat'}),
+            deg2rad($ziplatlonhash->{$zip}{'lon'}),
+            deg2rad(90 - $ziplatlonhash->{$zip}{'lat'}),
             $earthradius
         );
         $distance = sprintf("%.2f", $distance);
         # add the zip code to the hash only if it's within the radius
         if ( $distance <= $radius ) {
             $returnhash{$zip}{'distance'} = $distance;
-            $returnhash{$zip}{'lon'} = ${$ziplatlonhash}{$zip}{'lon'};
-            $returnhash{$zip}{'lat'} = ${$ziplatlonhash}{$zip}{'lat'};
+            $returnhash{$zip}{'lon'} = $ziplatlonhash->{$zip}{'lon'};
+            $returnhash{$zip}{'lat'} = $ziplatlonhash->{$zip}{'lat'};
         }
     }
     return \%returnhash;
@@ -104,7 +104,7 @@ __DATA__
     <script type="text/javascript">
       function initialize() {
         var mapOptions = {
-          center: new google.maps.LatLng(<%= ${$zipcodehash}{$zipcode}{'lat'}%>, <%= ${$zipcodehash}{$zipcode}{'lon'} %>),
+          center: new google.maps.LatLng(<%= $zipcodehash->{$zipcode}{'lat'}%>, <%= $zipcodehash->{$zipcode}{'lon'} %>),
           zoom: 4,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
@@ -135,10 +135,10 @@ __DATA__
         <th>Zip Code</th>
         <th>Distance</th>
     </tr>
-    % for my $zip ( sort { ${$zipcodehash}{$a}{'distance'} <=> ${$zipcodehash}{$b}{'distance'} || $a <=> $b } keys %{$zipcodehash} ) {
+    % for my $zip ( sort { $zipcodehash->{$a}{'distance'} <=> $zipcodehash->{$b}{'distance'} || $a <=> $b } keys %{$zipcodehash} ) {
         <tr>
         <td><%= $zip %></td>
-        <td><%= ${$zipcodehash}{$zip}{'distance'} %></td>
+        <td><%= $zipcodehash->{$zip}{'distance'} %></td>
         </tr>
     % }
 </table>
