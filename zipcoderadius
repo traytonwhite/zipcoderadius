@@ -100,7 +100,7 @@ __DATA__
       #map-canvas { height: 90%; width: 100% }
     </style>
     <script type="text/javascript"
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJJp6S9OpfZxra51nqDF2pP5piTgFM1tc&sensor=false">
+      src="https://maps.googleapis.com/maps/api/js?key=&sensor=false">
     </script>
     <script type="text/javascript">
       function initialize() {
